@@ -47,532 +47,84 @@
       --primary-subtle: rgba(5, 150, 105, 0.2);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Prompt', sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; }
+    body { background: var(--bg-page); min-height: 100vh; color: var(--text-main); display: flex; }
 
-    body {
-      background: var(--bg-page);
-      min-height: 100vh;
-      color: var(--text-main);
-      display: flex;
-    }
+    .sidebar { width: 250px; background: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 16px; flex-shrink: 0; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-left: 6px; }
+    .brand-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 19px; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25); }
+    .brand-text h2 { font-size: 16px; font-weight: 700; color: var(--primary); line-height: 1.2; }
+    .brand-text p { font-size: 11px; color: var(--text-muted); }
+    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
+    .nav-item button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 16px; border: none; background: transparent; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13.5px; cursor: pointer; font-weight: 500; text-align: left; transition: all 0.2s; }
+    .nav-item.active button, .nav-item button:hover { background: var(--primary-subtle); color: var(--primary-light); font-weight: 600; }
 
-    .sidebar {
-      width: 250px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      padding: 24px 16px;
-      flex-shrink: 0;
-    }
+    .main-wrapper { flex-grow: 1; padding: 24px 32px; overflow-y: auto; max-height: 100vh; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .top-header h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .theme-toggle-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s; }
+    .theme-toggle-btn:hover { color: var(--primary); border-color: var(--primary); transform: scale(1.05); }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-      padding-left: 6px;
-    }
+    .hero-banner { background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-radius: var(--radius-lg); min-height: 140px; padding: 28px 32px; color: #ffffff; position: relative; overflow: hidden; box-shadow: var(--shadow-md); margin-bottom: 22px; display: flex; flex-direction: column; justify-content: center; }
+    .hero-banner::after { content: '\f19d'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: 32px; top: 50%; transform: translateY(-50%); font-size: 110px; opacity: 0.18; }
+    .hero-banner h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .hero-banner p { font-size: 13px; opacity: 0.95; max-width: 600px; line-height: 1.6; }
 
-    .brand-icon {
-      width: 42px;
-      height: 42px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 19px;
-      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
-    }
+    .student-filter-bar { background: var(--card-bg); padding: 12px 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 12px; margin-bottom: 22px; border: 1px solid var(--border-color); flex-wrap: wrap; }
+    .filter-input-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .filter-select, .filter-input { padding: 7px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-main); }
+    .filter-select:focus, .filter-input:focus { border-color: var(--primary); }
+    .btn-action-primary { background: var(--primary); color: #fff; border: none; padding: 7px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+    .btn-action-primary:hover { background: var(--primary-dark); }
 
-    .brand-text h2 {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--primary);
-      line-height: 1.2;
-    }
-
-    .brand-text p {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .nav-menu {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex-grow: 1;
-    }
-
-    .nav-item button {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 16px;
-      border: none;
-      background: transparent;
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      font-size: 13.5px;
-      cursor: pointer;
-      font-weight: 500;
-      text-align: left;
-      transition: all 0.2s;
-    }
-
-    .nav-item.active button,
-    .nav-item button:hover {
-      background: var(--primary-subtle);
-      color: var(--primary-light);
-      font-weight: 600;
-    }
-
-    .main-wrapper {
-      flex-grow: 1;
-      padding: 24px 32px;
-      overflow-y: auto;
-      max-height: 100vh;
-    }
-
-    .top-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .top-header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .theme-toggle-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid var(--border-color);
-      background: var(--card-bg);
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: all 0.2s;
-    }
-
-    .theme-toggle-btn:hover {
-      color: var(--primary);
-      border-color: var(--primary);
-      transform: scale(1.05);
-    }
-
-    .hero-banner {
-      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-      border-radius: var(--radius-lg);
-      min-height: 140px;
-      padding: 28px 32px;
-      color: #ffffff;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-      margin-bottom: 22px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .hero-banner::after {
-      content: '\f19d';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      right: 32px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 110px;
-      opacity: 0.18;
-    }
-
-    .hero-banner h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .hero-banner p {
-      font-size: 13px;
-      opacity: 0.95;
-      max-width: 600px;
-      line-height: 1.6;
-    }
-
-    .student-filter-bar {
-      background: var(--card-bg);
-      padding: 12px 18px;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 22px;
-      border: 1px solid var(--border-color);
-      flex-wrap: wrap;
-    }
-
-    .filter-input-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .filter-select, .filter-input {
-      padding: 7px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      outline: none;
-      background: var(--input-bg);
-      color: var(--text-main);
-    }
-
-    .filter-select:focus, .filter-input:focus {
-      border-color: var(--primary);
-    }
-
-    .btn-action-primary {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 7px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-
-    .btn-action-primary:hover {
-      background: var(--primary-dark);
-    }
-
-    .stats-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-
-    .stat-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .stat-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
+    .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .stat-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px 20px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); }
+    .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .stat-icon.green { background: #d1fae5; color: #059669; }
     .stat-icon.yellow { background: #fef3c7; color: #d97706; }
     .stat-icon.purple { background: #ede9fe; color: #7c3aed; }
+    .stat-info p { font-size: 11.5px; color: var(--text-muted); margin-bottom: 2px; }
+    .stat-info h3 { font-size: 20px; font-weight: 700; color: var(--text-main); }
 
-    .stat-info p {
-      font-size: 11.5px;
-      color: var(--text-muted);
-      margin-bottom: 2px;
-    }
+    .steps-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 22px 24px; margin-bottom: 26px; box-shadow: var(--shadow-sm); }
+    .steps-card-title { font-size: 15px; font-weight: 700; color: var(--primary-light); display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .step-item { display: flex; flex-direction: column; gap: 8px; }
+    .step-num-badge { width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .step-item h4 { font-size: 14px; font-weight: 600; color: var(--text-main); }
+    .step-item p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
 
-    .stat-info h3 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .steps-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 22px 24px;
-      margin-bottom: 26px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .steps-card-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--primary-light);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 18px;
-    }
-
-    .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
-    .step-item {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .step-num-badge {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #10b981;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .step-item h4 {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .step-item p {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 18px;
-    }
-
-    .work-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border-top: 4px solid var(--primary);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .work-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .category-tag {
-      background: var(--primary-subtle);
-      color: var(--primary-light);
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .status-badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-weight: 500;
-    }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .work-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid var(--primary); transition: transform 0.2s, box-shadow 0.2s; }
+    .work-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .category-tag { background: var(--primary-subtle); color: var(--primary-light); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .status-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 500; }
     .status-badge.pending { background: #fef2f2; color: #ef4444; }
     .status-badge.submitted { background: #ecfdf5; color: #059669; }
     .status-badge.graded { background: #f3e8ff; color: #7c3aed; }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; }
+    .card-meta { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 10px; align-items: center; }
 
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 6px;
-    }
-
-    .card-desc {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 16px;
-    }
-
-    .card-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      border-top: 1px dashed var(--border-color);
-      padding-top: 10px;
-      align-items: center;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(5px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      padding: 16px;
-    }
-
-    .modal-box {
-      background: var(--card-bg);
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      border: 1px solid var(--border-color);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-header h3 {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .close-btn {
-      background: var(--badge-box-bg);
-      border: 1px solid var(--border-color);
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      cursor: pointer;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-weight: 500;
-      text-decoration: none;
-      text-align: center;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-    }
-
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; padding: 16px; }
+    .modal-box { background: var(--card-bg); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-lg); position: relative; border: 1px solid var(--border-color); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-header h3 { font-size: 16px; font-weight: 600; color: var(--text-main); }
+    .close-btn { background: var(--badge-box-bg); border: 1px solid var(--border-color); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-muted); font-size: 14px; }
+    .btn { flex: 1; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; text-decoration: none; text-align: center; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; }
     .btn-download { background: #dbeafe; color: #1e40af; }
     .btn-online { background: #fef3c7; color: #b45309; }
     .btn-submit { background: var(--primary); color: #fff; }
     .btn-submit:hover { background: var(--primary-dark); }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+    .form-control { width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-main); }
+    .form-control:focus { border-color: var(--primary); }
+    .notice-toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 18px; border-radius: var(--radius-sm); background: #1e293b; color: #fff; font-size: 13px; display: none; align-items: center; gap: 10px; box-shadow: var(--shadow-lg); z-index: 10000; }
 
-    .form-group {
-      margin-bottom: 10px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-color);
-      font-size: 13px;
-      outline: none;
-      background: var(--input-bg);
-      color: var(--text-main);
-    }
-
-    .form-control:focus {
-      border-color: var(--primary);
-    }
-
-    .notice-toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 12px 18px;
-      border-radius: var(--radius-sm);
-      background: #1e293b;
-      color: #fff;
-      font-size: 13px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      box-shadow: var(--shadow-lg);
-      z-index: 10000;
-    }
-
-    @media (max-width: 820px) {
-      body { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
-      .main-wrapper { padding: 16px; }
-      .stats-container, .steps-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 820px) { body { flex-direction: column; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); } .main-wrapper { padding: 16px; } .stats-container, .steps-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -635,7 +187,6 @@
       </div>
     </div>
 
-    <!-- แดชบอร์ด -->
     <div id="dashboardSection">
       <div class="hero-banner">
         <h2>ยินดีต้อนรับสู่ คลังการเรียนรู้และส่งงาน</h2>
@@ -645,53 +196,28 @@
       <div class="stats-container">
         <div class="stat-box">
           <div class="stat-icon green"><i class="fa-solid fa-file-pen"></i></div>
-          <div class="stat-info">
-            <p>ใบงานรอให้นักเรียนทำ</p>
-            <h3 id="statTotal">กำลังโหลด...</h3>
-          </div>
+          <div class="stat-info"><p>ใบงานรอให้นักเรียนทำ</p><h3 id="statTotal">กำลังโหลด...</h3></div>
         </div>
         <div class="stat-box">
           <div class="stat-icon yellow"><i class="fa-solid fa-circle-question"></i></div>
-          <div class="stat-info">
-            <p>แบบทดสอบ / ข้อสอบออนไลน์</p>
-            <h3 id="statOnline">กำลังโหลด...</h3>
-          </div>
+          <div class="stat-info"><p>แบบทดสอบ / ข้อสอบออนไลน์</p><h3 id="statOnline">กำลังโหลด...</h3></div>
         </div>
         <div class="stat-box">
           <div class="stat-icon purple"><i class="fa-solid fa-book-bookmark"></i></div>
-          <div class="stat-info">
-            <p>ใบงานที่ส่งแล้ว / มีคะแนน</p>
-            <h3 id="statSubmitted">0 ชิ้น</h3>
-          </div>
+          <div class="stat-info"><p>ใบงานที่ส่งแล้ว / มีคะแนน</p><h3 id="statSubmitted">0 ชิ้น</h3></div>
         </div>
       </div>
 
-      <!-- ขั้นตอน 3 Steps -->
       <div class="steps-card">
-        <div class="steps-card-title">
-          <i class="fa-solid fa-bullhorn"></i> ขั้นตอนการดาวน์โหลดและส่งการบ้านในระบบ
-        </div>
+        <div class="steps-card-title"><i class="fa-solid fa-bullhorn"></i> ขั้นตอนการดาวน์โหลดและส่งการบ้านในระบบ</div>
         <div class="steps-grid">
-          <div class="step-item">
-            <div class="step-num-badge">1</div>
-            <h4>ค้นหาใบงาน</h4>
-            <p>เข้าไปที่เมนู "รับใบงาน" ค้นหาหรือระบุชื่อวิชา/เนื้อหาที่ต้องการศึกษา จากนั้นกดปุ่มแว่นตาเพื่อเปิดดูรายละเอียด</p>
-          </div>
-          <div class="step-item">
-            <div class="step-num-badge">2</div>
-            <h4>ดาวน์โหลดและสแกน</h4>
-            <p>กดดาวน์โหลดไฟล์ผ่านระบบ หรือสแกน QR Code ด้วยโทรศัพท์มือถือ เพื่อเข้าทำแบบทดสอบหรือทำงานบนหน้าจอของนักเรียน</p>
-          </div>
-          <div class="step-item">
-            <div class="step-num-badge">3</div>
-            <h4>ส่งการบ้านกลับ</h4>
-            <p>เมื่อทำใบงานเสร็จแล้ว ให้บันทึกเป็นรูปภาพ/PDF หรือคัดลอกลิงก์งาน แล้วนำมาส่งที่เมนู "ส่งการบ้านออนไลน์" เพื่อให้ครูตรวจประเมิน</p>
-          </div>
+          <div class="step-item"><div class="step-num-badge">1</div><h4>ค้นหาใบงาน</h4><p>เข้าไปที่เมนู "รับใบงาน" ค้นหาหรือระบุชื่อวิชา/เนื้อหาที่ต้องการศึกษา จากนั้นกดปุ่มแว่นตาเพื่อเปิดดูรายละเอียด</p></div>
+          <div class="step-item"><div class="step-num-badge">2</div><h4>ดาวน์โหลดและสแกน</h4><p>กดดาวน์โหลดไฟล์ผ่านระบบ หรือสแกน QR Code ด้วยโทรศัพท์มือถือ เพื่อเข้าทำแบบทดสอบหรือทำงานบนหน้าจอของนักเรียน</p></div>
+          <div class="step-item"><div class="step-num-badge">3</div><h4>ส่งการบ้านกลับ</h4><p>เมื่อทำใบงานเสร็จแล้ว ให้บันทึกเป็นรูปภาพ/PDF หรือคัดลอกลิงก์งาน แล้วนำมาส่งที่เมนู "ส่งการบ้านออนไลน์" เพื่อให้ครูตรวจประเมิน</p></div>
         </div>
       </div>
     </div>
 
-    <!-- รายการใบงาน -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
       <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main);" id="sectionListHeading">
         <i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> รายการใบงานประจำวิชา
@@ -727,12 +253,8 @@
           </div>
 
           <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-            <a href="#" target="_blank" id="btnDownload" class="btn btn-download">
-              <i class="fa-solid fa-download"></i> ดาวน์โหลดใบงาน (PDF)
-            </a>
-            <a href="#" target="_blank" id="btnOnline" class="btn btn-online">
-              <i class="fa-solid fa-gamepad"></i> เข้าทำออนไลน์ / เล่นเกม
-            </a>
+            <a href="#" target="_blank" id="btnDownload" class="btn btn-download"><i class="fa-solid fa-download"></i> ดาวน์โหลดใบงาน (PDF)</a>
+            <a href="#" target="_blank" id="btnOnline" class="btn btn-online"><i class="fa-solid fa-gamepad"></i> เข้าทำออนไลน์ / เล่นเกม</a>
           </div>
 
           <div style="display: flex; flex-direction: column; align-items: center; padding: 10px; background: var(--badge-box-bg); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
@@ -741,11 +263,8 @@
           </div>
         </div>
 
-        <!-- ฟอร์มส่งงาน -->
         <div style="border-top: 1px dashed var(--border-color); padding-top: 14px;">
-          <h4 style="font-size: 13.5px; margin-bottom: 10px; color: var(--primary);">
-            <i class="fa-solid fa-cloud-arrow-up"></i> แบบฟอร์มส่งงาน
-          </h4>
+          <h4 style="font-size: 13.5px; margin-bottom: 10px; color: var(--primary);"><i class="fa-solid fa-cloud-arrow-up"></i> แบบฟอร์มส่งงาน</h4>
           <form id="submitForm" onsubmit="handleSendWork(event)">
             
             <div class="form-group" id="assignmentSelectGroup">
@@ -798,13 +317,10 @@
     </div>
   </div>
 
-  <div class="notice-toast" id="toastMsg">
-    <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
-    <span id="toastText">บันทึกเรียบร้อย</span>
-  </div>
+  <div class="notice-toast" id="toastMsg"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i><span id="toastText">บันทึกเรียบร้อย</span></div>
 
   <script>
-    // ✅ นำ URL เว็บแอปของคุณครูมาใส่ไว้ตรงนี้เรียบร้อยแล้วครับ
+    // ✅ URL เว็บแอปของคุณครูถูกใส่ไว้ให้เรียบร้อยแล้ว ห้ามเปลี่ยนนะครับ
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmOYH6qSSeMznexw90Emt0AyDXQ1Xq77A9rEZt95N9IWWu-lDHlQbA71k49-PFBS5x/exec";
 
     let assignments = [];
@@ -860,29 +376,21 @@
       const heading = document.getElementById('pageTitle');
 
       if (view === 'dashboard') {
-        menuHome.classList.add('active');
-        menuAssign.classList.remove('active');
-        dashSection.style.display = 'block';
-        searchInput.style.display = 'none';
+        menuHome.classList.add('active'); menuAssign.classList.remove('active');
+        dashSection.style.display = 'block'; searchInput.style.display = 'none';
         heading.innerText = 'หน้าแรกและบอร์ดประชาสัมพันธ์';
       } else {
-        menuHome.classList.remove('active');
-        menuAssign.classList.add('active');
-        dashSection.style.display = 'none';
-        searchInput.style.display = 'block';
+        menuHome.classList.remove('active'); menuAssign.classList.add('active');
+        dashSection.style.display = 'none'; searchInput.style.display = 'block';
         heading.innerText = 'รับใบงาน & ทำแบบทดสอบ';
       }
       renderCards(assignments);
     }
 
     function openDirectSubmit() {
-      if (assignments.length === 0) {
-        showToast('ยังไม่มีรายการใบงานในระบบ', true);
-        return;
-      }
+      if (assignments.length === 0) { showToast('ยังไม่มีรายการใบงานในระบบ', true); return; }
       document.getElementById('modalInfoSection').style.display = 'none';
       document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-paper-plane" style="color: var(--primary);"></i> ส่งการบ้านออนไลน์';
-
       populateAssignmentDropdown('');
       document.getElementById('workModal').style.display = 'flex';
     }
@@ -896,9 +404,7 @@
         const opt = document.createElement('option');
         opt.value = item.id;
         opt.textContent = `${item.title} (${item.category})`;
-        if (String(item.id) === String(selectedId)) {
-          opt.selected = true;
-        }
+        if (String(item.id) === String(selectedId)) opt.selected = true;
         select.appendChild(opt);
       });
 
@@ -913,8 +419,7 @@
 
     function onAssignSelectChanged() {
       const select = document.getElementById('formAssignSelect');
-      const selectedId = select.value;
-      const found = assignments.find(a => String(a.id) === String(selectedId));
+      const found = assignments.find(a => String(a.id) === String(select.value));
       if (found) {
         document.getElementById('formAssignId').value = found.id;
         document.getElementById('formAssignTitle').value = found.title;
@@ -927,13 +432,9 @@
     async function checkStudentStatus() {
       const room = document.getElementById('filterClassroom').value;
       const no = document.getElementById('filterStudentNo').value.trim();
-      if (!no) {
-        showToast('กรุณากรอกเลขที่ครับ', true);
-        return;
-      }
-      studentData.room = room;
-      studentData.no = no;
-
+      if (!no) { showToast('กรุณากรอกเลขที่ครับ', true); return; }
+      
+      studentData.room = room; studentData.no = no;
       document.getElementById('formClassroom').value = room;
       document.getElementById('formStudentNo').value = no;
 
@@ -1022,19 +523,13 @@
 
       const btnDown = document.getElementById('btnDownload');
       if (item.downloadUrl && item.downloadUrl.trim() !== '') {
-        btnDown.href = item.downloadUrl;
-        btnDown.style.display = 'inline-flex';
-      } else {
-        btnDown.style.display = 'none';
-      }
+        btnDown.href = item.downloadUrl; btnDown.style.display = 'inline-flex';
+      } else { btnDown.style.display = 'none'; }
 
       const btnOn = document.getElementById('btnOnline');
       if (item.onlineWorkUrl && item.onlineWorkUrl.trim() !== '') {
-        btnOn.href = item.onlineWorkUrl;
-        btnOn.style.display = 'inline-flex';
-      } else {
-        btnOn.style.display = 'none';
-      }
+        btnOn.href = item.onlineWorkUrl; btnOn.style.display = 'inline-flex';
+      } else { btnOn.style.display = 'none'; }
 
       const historyBox = document.getElementById('modalHistory');
       const sub = studentData.submissions[String(item.id)];
@@ -1063,12 +558,8 @@
 
     function handleSendWork(e) {
       e.preventDefault();
-
       const assignId = document.getElementById('formAssignId').value;
-      if (!assignId) {
-        showToast('กรุณาเลือกใบงานที่ต้องการส่งก่อนครับ', true);
-        return;
-      }
+      if (!assignId) { showToast('กรุณาเลือกใบงานที่ต้องการส่งก่อนครับ', true); return; }
 
       const btn = document.getElementById('btnSubmitForm');
       btn.disabled = true;
@@ -1083,18 +574,13 @@
         assignmentId: document.getElementById('formAssignId').value,
         assignmentTitle: document.getElementById('formAssignTitle').value,
         workLink: document.getElementById('formLink').value,
-        fileName: '',
-        fileData: ''
+        fileName: '', fileData: ''
       };
 
       if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const reader = new FileReader();
-        reader.onload = ev => {
-          payload.fileName = file.name;
-          payload.fileData = ev.target.result;
-          uploadPayload(payload);
-        };
+        reader.onload = ev => { payload.fileName = file.name; payload.fileData = ev.target.result; uploadPayload(payload); };
         reader.readAsDataURL(file);
       } else {
         uploadPayload(payload);
@@ -1111,17 +597,14 @@
         const json = await res.json();
 
         if (json.status === 'success') {
-          showToast(json.message);
-          closeModal();
-          checkStudentStatus();
+          showToast(json.message); closeModal(); checkStudentStatus();
         } else {
           showToast('เกิดข้อผิดพลาด: ' + json.message, true);
         }
       } catch (err) {
         showToast('ส่งข้อมูลไม่สำเร็จ: ' + err.message, true);
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ยืนยันการส่งการบ้าน';
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ยืนยันการส่งการบ้าน';
       }
     }
 
@@ -1131,6 +614,11 @@
       document.getElementById('toastText').innerText = txt;
       t.style.display = 'flex';
       setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    function filterAssignments() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      renderCards(assignments.filter(i => (i.title && i.title.toLowerCase().includes(q)) || (i.category && i.category.toLowerCase().includes(q))));
     }
 
     function escapeHtml(s) {
