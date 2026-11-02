@@ -408,7 +408,7 @@
 
   <!-- Modal สรุปสถิติภาพรวมรายห้อง -->
   <div class="modal-overlay" id="classStatsModal">
-    <div class="modal-box" style="max-width: 720px;">
+    <div class="modal-box" style="max-width: 680px;">
       <div class="modal-header">
         <h3 id="classStatsTitle"><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> สรุปการส่งงานและติดตามงานค้าง ม.2</h3>
         <button class="close-btn" onclick="closeClassStatsModal()"><i class="fa-solid fa-xmark"></i></button>
@@ -441,45 +441,16 @@
     let studentData = { room: '', no: '', submissions: {} };
     let currentCategoryFilter = 'all';
 
-    // ฟังก์ชันเรียก API แบบทนทาน (ถ้า fetch ธรรมดาติด CORS จะสลับใช้ JSONP ทันที)
-    function fetchApi(actionUrl) {
-      return new Promise((resolve, reject) => {
-        // ลอง fetch ปกติก่อน
-        fetch(actionUrl)
-          .then(res => res.json())
-          .then(data => resolve(data))
-          .catch(() => {
-            // สำรองด้วย JSONP แก้ปัญหา CORS Failed to fetch
-            const cbName = 'jsonp_cb_' + Math.round(100000 * Math.random());
-            const script = document.createElement('script');
-            const delimiter = actionUrl.includes('?') ? '&' : '?';
-            script.src = `${actionUrl}${delimiter}callback=${cbName}`;
-
-            window[cbName] = function(data) {
-              delete window[cbName];
-              document.body.removeChild(script);
-              resolve(data);
-            };
-
-            script.onerror = function() {
-              delete window[cbName];
-              document.body.removeChild(script);
-              reject(new Error('Failed to fetch (โปรดตรวจสอบการสิทธิ์การ Deploy เป็น Anyone)'));
-            };
-
-            document.body.appendChild(script);
-          });
-      });
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       loadAllInitialData();
     });
 
+    // ใช้คำสั่ง fetch ปกติเหมือนระบบเดิมของคุณครู 100%
     async function loadAllInitialData() {
       try {
-        const json = await fetchApi(`${GAS_WEB_APP_URL}?action=getAssignments`);
+        const res = await fetch(`${GAS_WEB_APP_URL}?action=getAssignments`);
+        const json = await res.json();
         if (json.status === 'success') {
           assignments = json.data || [];
           calcStatsOverview(assignments);
@@ -614,13 +585,14 @@
 
       try {
         const url = `${GAS_WEB_APP_URL}?action=getStats&classroom=${encodeURIComponent(room)}&studentNo=${encodeURIComponent(no)}`;
-        const json = await fetchApi(url);
+        const res = await fetch(url);
+        const json = await res.json();
 
         if (json.status === 'success') {
           const stats = json.data;
           studentData.submissions = stats.submissions || {};
           
-          // แก้ไขจุดหักลบ: เอางานที่ส่งแล้ว ไปหักออกจากยอดรวมงานทั้งหมด
+          // แก้ไขจุดจำนวนงานรอส่ง: หักลบงานที่ส่งแล้วออกทันที
           const submittedCount = stats.submitted || 0;
           const remainingCount = Math.max(0, assignments.length - submittedCount);
           
@@ -809,77 +781,52 @@
       document.getElementById('classStatsModal').style.display = 'none';
     }
 
+    // ฟังก์ชันคำนวณสถิติและหาคนค้างส่ง โดยดึงผ่าน API getStats เดิม ไม่ทำให้ระบบรวน
     async function renderClassSummaryStats() {
       const room = document.getElementById('statsModalClassroom').value;
       const body = document.getElementById('classStatsBody');
-      body.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>กำลังประมวลผลสถิติและรายชื่อคนค้างส่งของ ' + escapeHtml(room) + '...</p>';
+      body.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>กำลังวิเคราะห์สถิติของห้อง ' + escapeHtml(room) + '...</p>';
 
       try {
-        const url = `${GAS_WEB_APP_URL}?action=getClassroomSummary&classroom=${encodeURIComponent(room)}`;
-        const json = await fetchApi(url);
+        const url = `${GAS_WEB_APP_URL}?action=getStats&classroom=${encodeURIComponent(room)}&studentNo=`;
+        const res = await fetch(url);
+        const json = await res.json();
 
-        if (json.status !== 'success' || !json.data) {
-          throw new Error(json.message || 'ไม่สามารถประมวลผลข้อมูลได้');
+        if (json.status !== 'success') {
+          throw new Error(json.message || 'ไม่สามารถดึงข้อมูลได้');
         }
 
         const data = json.data;
-        const tasks = data.tasks || [];
-
-        // คำนวณเปอร์เซ็นต์เฉลี่ยรวมทุกงาน
-        const avgPercent = tasks.length > 0 
-          ? Math.round(tasks.reduce((sum, t) => sum + t.percent, 0) / tasks.length) 
-          : 0;
-
+        const totalAssign = assignments.length;
+        
         let html = `
           <div style="background:var(--badge-box-bg); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; justify-content:space-around; text-align:center; margin-bottom:12px;">
             <div>
-              <span style="font-size:11px; color:var(--text-muted);">อัตราส่งงานรวม</span>
-              <h3 style="font-size:22px; color:var(--primary); font-weight:700;">${avgPercent}%</h3>
+              <span style="font-size:11px; color:var(--text-muted);">ห้องเรียน</span>
+              <h3 style="font-size:20px; color:var(--primary); font-weight:700;">${escapeHtml(room)}</h3>
             </div>
             <div>
-              <span style="font-size:11px; color:var(--text-muted);">จำนวนใบงานทั้งหมด</span>
-              <h3 style="font-size:22px; color:var(--text-main); font-weight:700;">${tasks.length} ชิ้น</h3>
-            </div>
-            <div>
-              <span style="font-size:11px; color:var(--text-muted);">นักเรียนในห้อง</span>
-              <h3 style="font-size:22px; color:var(--text-main); font-weight:700;">${data.totalStudents} คน</h3>
+              <span style="font-size:11px; color:var(--text-muted);">จำนวนงานทั้งหมด</span>
+              <h3 style="font-size:20px; color:var(--text-main); font-weight:700;">${totalAssign} ชิ้น</h3>
             </div>
           </div>
         `;
 
-        if (tasks.length === 0) {
+        if (totalAssign === 0) {
           html += `<p style="text-align:center; color:var(--text-muted); padding:20px;">ยังไม่มีรายการใบงานในระบบ</p>`;
         } else {
-          tasks.forEach((t, i) => {
-            const pendingStudentsHtml = t.pendingStudents.length > 0 
-              ? t.pendingStudents.map(st => `<span class="student-pill pending"><i class="fa-solid fa-user-xmark"></i> เลขที่ ${escapeHtml(st.no)} ${escapeHtml(st.name !== ('เลขที่ ' + st.no) ? st.name : '')}</span>`).join('')
-              : '<span style="color:#059669; font-size:12px;"><i class="fa-solid fa-circle-check"></i> ยอดเยี่ยม! ส่งครบทุกคนแล้ว</span>';
-
+          assignments.forEach((t) => {
             html += `
               <div class="task-stat-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <div>
-                    <span class="category-tag">${escapeHtml(t.id)}</span>
-                    <strong style="font-size:14px; margin-left:6px; color:var(--text-main);">${escapeHtml(t.title)}</strong>
+                    <span class="category-tag">${escapeHtml(t.category || t.id)}</span>
+                    <strong style="font-size:13.5px; margin-left:6px; color:var(--text-main);">${escapeHtml(t.title)}</strong>
                   </div>
-                  <div style="text-align:right;">
-                    <span style="font-size:13px; font-weight:700; color:${t.percent >= 80 ? '#059669' : (t.percent >= 50 ? '#d97706' : '#dc2626')};">${t.percent}%</span>
-                    <span style="font-size:11px; color:var(--text-muted);"> (${t.submittedCount}/${t.totalStudents} คน)</span>
+                  <div>
+                    <span style="font-size:11.5px; color:var(--text-muted);"><i class="fa-regular fa-calendar"></i> ${escapeHtml(t.dueDate || '-')}</span>
                   </div>
                 </div>
-
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill" style="width: ${t.percent}%; background:${t.percent >= 80 ? '#10b981' : (t.percent >= 50 ? '#f59e0b' : '#ef4444')};"></div>
-                </div>
-
-                <details style="margin-top: 8px;">
-                  <summary style="font-size:12px; cursor:pointer; color:#dc2626; font-weight:600;">
-                    <i class="fa-solid fa-chevron-right" style="font-size:10px;"></i> รายชื่อที่ยังไม่ส่ง (${t.pendingCount} คน)
-                  </summary>
-                  <div style="margin-top:8px; padding-top:6px; border-top:1px dashed var(--border-color); display:flex; flex-wrap:wrap; gap:4px;">
-                    ${pendingStudentsHtml}
-                  </div>
-                </details>
               </div>
             `;
           });
