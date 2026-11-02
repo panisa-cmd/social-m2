@@ -441,6 +441,37 @@
     let studentData = { room: '', no: '', submissions: {} };
     let currentCategoryFilter = 'all';
 
+    // ฟังก์ชันเรียก API แบบทนทาน (ถ้า fetch ธรรมดาติด CORS จะสลับใช้ JSONP ทันที)
+    function fetchApi(actionUrl) {
+      return new Promise((resolve, reject) => {
+        // ลอง fetch ปกติก่อน
+        fetch(actionUrl)
+          .then(res => res.json())
+          .then(data => resolve(data))
+          .catch(() => {
+            // สำรองด้วย JSONP แก้ปัญหา CORS Failed to fetch
+            const cbName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+            const script = document.createElement('script');
+            const delimiter = actionUrl.includes('?') ? '&' : '?';
+            script.src = `${actionUrl}${delimiter}callback=${cbName}`;
+
+            window[cbName] = function(data) {
+              delete window[cbName];
+              document.body.removeChild(script);
+              resolve(data);
+            };
+
+            script.onerror = function() {
+              delete window[cbName];
+              document.body.removeChild(script);
+              reject(new Error('Failed to fetch (โปรดตรวจสอบการสิทธิ์การ Deploy เป็น Anyone)'));
+            };
+
+            document.body.appendChild(script);
+          });
+      });
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       loadAllInitialData();
@@ -448,8 +479,7 @@
 
     async function loadAllInitialData() {
       try {
-        const res = await fetch(`${GAS_WEB_APP_URL}?action=getAssignments`);
-        const json = await res.json();
+        const json = await fetchApi(`${GAS_WEB_APP_URL}?action=getAssignments`);
         if (json.status === 'success') {
           assignments = json.data || [];
           calcStatsOverview(assignments);
@@ -584,8 +614,7 @@
 
       try {
         const url = `${GAS_WEB_APP_URL}?action=getStats&classroom=${encodeURIComponent(room)}&studentNo=${encodeURIComponent(no)}`;
-        const res = await fetch(url);
-        const json = await res.json();
+        const json = await fetchApi(url);
 
         if (json.status === 'success') {
           const stats = json.data;
@@ -787,8 +816,7 @@
 
       try {
         const url = `${GAS_WEB_APP_URL}?action=getClassroomSummary&classroom=${encodeURIComponent(room)}`;
-        const res = await fetch(url);
-        const json = await res.json();
+        const json = await fetchApi(url);
 
         if (json.status !== 'success' || !json.data) {
           throw new Error(json.message || 'ไม่สามารถประมวลผลข้อมูลได้');
