@@ -236,10 +236,14 @@
     <div class="top-header">
       <h1 id="pageTitle">หน้าแรกและบอร์ดประชาสัมพันธ์ ม.2</h1>
       <div class="header-actions">
+        <!-- ปุ่มรีเฟรชข้อมูลด่วน -->
+        <button class="theme-toggle-btn" id="refreshBtn" onclick="manualRefresh()" title="กดเพื่ออัปเดตข้อมูลล่าสุด">
+          <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
+        </button>
         <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleDarkMode()" title="สลับโหมดมืด/สว่าง">
           <i class="fa-solid fa-moon"></i>
         </button>
-        <span style="font-size: 13px; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> ภาคเรียนปัจจุบัน</span>
+        <span style="font-size: 13px; color: var(--text-muted);" id="lastUpdateText"><i class="fa-regular fa-clock"></i> อัปเดตอัตโนมัติ</span>
       </div>
     </div>
 
@@ -440,27 +444,90 @@
     let assignments = [];
     let studentData = { room: '', no: '', submissions: {} };
     let currentCategoryFilter = 'all';
+    let autoRefreshTimer = null;
+    let classroomCache = {}; // แคชเก็บข้อมูลสถิติที่ตรวจแล้วเพื่อความรวดเร็ว
 
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       loadAllInitialData();
+      startAutoRefresh(); // เริ่มระบบ Auto-Refresh อัตโนมัติ
     });
 
-    // ใช้คำสั่ง fetch ปกติเหมือนระบบเดิมของคุณครู 100%
-    async function loadAllInitialData() {
+    // ตรวจจับเมื่อผู้ใช้สลับหน้าจอกลับมา ให้ดึงข้อมูลล่าสุดทันที
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        loadAllInitialData(true);
+      }
+    });
+
+    // ฟังก์ชันตั้งเวลาดึงข้อมูลอัตโนมัติทุก 45 วินาที
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(() => {
+        loadAllInitialData(true);
+      }, 45000); // 45 วินาทีต่อครั้ง
+    }
+
+    // ปุ่มกดรีเฟรชข้อมูลด้วยตนเอง
+    function manualRefresh() {
+      const icon = document.getElementById('refreshIcon');
+      if (icon) icon.classList.add('fa-spin');
+      showToast('กำลังซิงค์ข้อมูลล่าสุด...');
+      classroomCache = {}; // ล้างแคชสถิติเก่า
+      loadAllInitialData(false).finally(() => {
+        if (icon) icon.classList.remove('fa-spin');
+      });
+    }
+
+    // ใช้คำสั่ง fetch ดึงข้อมูล พร้อมอัปเดตสถานะของนักเรียนปัจจุบันถ้ามี
+    async function loadAllInitialData(isBackground = false) {
       try {
         const res = await fetch(`${GAS_WEB_APP_URL}?action=getAssignments`);
         const json = await res.json();
         if (json.status === 'success') {
           assignments = json.data || [];
           calcStatsOverview(assignments);
-          renderCards(assignments);
+          applyFilters();
           populateAssignmentDropdown('');
+
+          // อัปเดตเวลาล่าสุดที่ดึงข้อมูล
+          const now = new Date();
+          const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          const lastUpdate = document.getElementById('lastUpdateText');
+          if (lastUpdate) lastUpdate.innerHTML = `<i class="fa-solid fa-check" style="color:var(--primary);"></i> อัปเดตล่าสุด ${timeStr}`;
+
+          // ถ้านักเรียนกรอกเลขที่ค้างไว้ ให้รีเฟรชข้อมูลนักเรียนคนนั้นอัตโนมัติด้วย
+          if (studentData.no && studentData.room) {
+            await refreshCurrentStudentStatus();
+          }
         } else {
           throw new Error(json.message);
         }
       } catch (err) {
-        document.getElementById('assignmentsList').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">ไม่สามารถดึงข้อมูลใบงานได้: ${escapeHtml(err.message)}</p>`;
+        if (!isBackground) {
+          document.getElementById('assignmentsList').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">ไม่สามารถดึงข้อมูลใบงานได้: ${escapeHtml(err.message)}</p>`;
+        }
+      }
+    }
+
+    // ฟังก์ชันรีเฟรชข้อมูลนักเรียนปัจจุบันแบบเงียบๆ ไม่ต้องกดเช็กใหม่
+    async function refreshCurrentStudentStatus() {
+      if (!studentData.room || !studentData.no) return;
+      try {
+        const url = `${GAS_WEB_APP_URL}?action=getStats&classroom=${encodeURIComponent(studentData.room)}&studentNo=${encodeURIComponent(studentData.no)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.status === 'success') {
+          const stats = json.data;
+          studentData.submissions = stats.submissions || {};
+          const submittedCount = stats.submitted || 0;
+          const remainingCount = Math.max(0, assignments.length - submittedCount);
+          document.getElementById('statTotal').innerText = `${remainingCount} ใบงาน`;
+          document.getElementById('statSubmitted').innerText = `${submittedCount} ชิ้น`;
+          applyFilters();
+        }
+      } catch (e) {
+        // เงียบไว้ถ้า background refresh สะดุด
       }
     }
 
@@ -781,24 +848,86 @@
       document.getElementById('classStatsModal').style.display = 'none';
     }
 
-    // ฟังก์ชันคำนวณสถิติและหาคนค้างส่ง โดยดึงผ่าน API getStats เดิม ไม่ทำให้ระบบรวน
+    // ฟังก์ชันคำนวณสถิติและหาคนค้างส่ง โดยตรงจาก Apps Script ตัวเดิมของคุณครู (ไม่ต้องแก้ Code.gs)
     async function renderClassSummaryStats() {
       const room = document.getElementById('statsModalClassroom').value;
       const body = document.getElementById('classStatsBody');
-      body.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 30px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>กำลังวิเคราะห์สถิติของห้อง ' + escapeHtml(room) + '...</p>';
+      body.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 30px;">
+          <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+          <p style="margin-top: 12px; font-weight: 500;">กำลังตรวจสอบสถานะการส่งงานของห้อง ${escapeHtml(room)} จากฐานข้อมูล...</p>
+        </div>
+      `;
 
       try {
-        const url = `${GAS_WEB_APP_URL}?action=getStats&classroom=${encodeURIComponent(room)}&studentNo=`;
-        const res = await fetch(url);
-        const json = await res.json();
-
-        if (json.status !== 'success') {
-          throw new Error(json.message || 'ไม่สามารถดึงข้อมูลได้');
+        if (assignments.length === 0) {
+          body.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">ยังไม่มีรายการใบงานในระบบ</p>`;
+          return;
         }
 
-        const data = json.data;
-        const totalAssign = assignments.length;
-        
+        // หากมีเลขที่ที่ผู้ใช้กรอกไว้ ให้เริ่มต้นด้วยเลขที่นั้น และตรวจหาเลขที่ที่มีการส่งงานจริง
+        let checkMax = 40; 
+        // ถ้าเคยเช็กสถานะนักเรียนคนปัจจุบันและมีเลขที่สูงกว่า 40 ให้อัปเดตตามจริง
+        if (studentData.room === room && parseInt(studentData.no, 10) > checkMax) {
+          checkMax = parseInt(studentData.no, 10);
+        }
+
+        // ดึงสถานะของนักเรียนในห้องเพื่อรวบรวมคนส่งจริง
+        const studentPromises = [];
+        for (let i = 1; i <= checkMax; i++) {
+          studentPromises.push(
+            fetch(`${GAS_WEB_APP_URL}?action=getStats&classroom=${encodeURIComponent(room)}&studentNo=${i}`)
+              .then(r => r.json())
+              .then(res => ({ no: i, data: (res && res.status === 'success') ? res.data : null }))
+              .catch(() => ({ no: i, data: null }))
+          );
+        }
+
+        const results = await Promise.all(studentPromises);
+
+        // หาเลขที่สูงสุดที่มีการส่งงานจริง หรืออย่างน้อยอิงตามเลขที่ปัจจุบัน
+        let maxActiveNo = studentData.room === room && studentData.no ? parseInt(studentData.no, 10) : 0;
+        results.forEach(item => {
+          if (item.data && item.data.submitted > 0) {
+            if (item.no > maxActiveNo) maxActiveNo = item.no;
+          }
+        });
+
+        // หากห้องนี้เพิ่งเริ่มต้น ให้ใช้อย่างน้อย 35 หรือตามเลขที่สูงสุดที่ตรวจพบ
+        const effectiveTotalStudents = maxActiveNo > 0 ? maxActiveNo : 35;
+        const validResults = results.filter(r => r.no <= effectiveTotalStudents);
+
+        let totalSubmissionsCount = 0;
+        const taskMap = {};
+
+        assignments.forEach(task => {
+          taskMap[task.id] = {
+            submittedList: [],
+            pendingList: []
+          };
+        });
+
+        validResults.forEach(item => {
+          const no = item.no;
+          const submissions = (item.data && item.data.submissions) ? item.data.submissions : {};
+
+          assignments.forEach(task => {
+            // จับคู่ตาม ID หรือชื่องาน
+            const record = submissions[task.id] || submissions[task.title];
+            if (record) {
+              taskMap[task.id].submittedList.push({
+                no: no,
+                score: record.score || ''
+              });
+              totalSubmissionsCount++;
+            } else {
+              taskMap[task.id].pendingList.push(no);
+            }
+          });
+        });
+
+        const overallPercent = Math.round((totalSubmissionsCount / (assignments.length * effectiveTotalStudents)) * 100) || 0;
+
         let html = `
           <div style="background:var(--badge-box-bg); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color); display:flex; justify-content:space-around; text-align:center; margin-bottom:12px;">
             <div>
@@ -806,31 +935,61 @@
               <h3 style="font-size:20px; color:var(--primary); font-weight:700;">${escapeHtml(room)}</h3>
             </div>
             <div>
-              <span style="font-size:11px; color:var(--text-muted);">จำนวนงานทั้งหมด</span>
-              <h3 style="font-size:20px; color:var(--text-main); font-weight:700;">${totalAssign} ชิ้น</h3>
+              <span style="font-size:11px; color:var(--text-muted);">จำนวนนักเรียน</span>
+              <h3 style="font-size:20px; color:var(--text-main); font-weight:700;">${effectiveTotalStudents} คน</h3>
+            </div>
+            <div>
+              <span style="font-size:11px; color:var(--text-muted);">อัตราส่งงานรวม</span>
+              <h3 style="font-size:20px; color:var(--primary-dark); font-weight:700;">${overallPercent}%</h3>
             </div>
           </div>
         `;
 
-        if (totalAssign === 0) {
-          html += `<p style="text-align:center; color:var(--text-muted); padding:20px;">ยังไม่มีรายการใบงานในระบบ</p>`;
-        } else {
-          assignments.forEach((t) => {
-            html += `
-              <div class="task-stat-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div>
-                    <span class="category-tag">${escapeHtml(t.category || t.id)}</span>
-                    <strong style="font-size:13.5px; margin-left:6px; color:var(--text-main);">${escapeHtml(t.title)}</strong>
-                  </div>
-                  <div>
-                    <span style="font-size:11.5px; color:var(--text-muted);"><i class="fa-regular fa-calendar"></i> ${escapeHtml(t.dueDate || '-')}</span>
-                  </div>
+        assignments.forEach(t => {
+          const info = taskMap[t.id];
+          const sendCount = info.submittedList.length;
+          const pendingCount = info.pendingList.length;
+          const percent = effectiveTotalStudents > 0 ? Math.round((sendCount / effectiveTotalStudents) * 100) : 0;
+
+          html += `
+            <div class="task-stat-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <span class="category-tag">${escapeHtml(t.category || t.id)}</span>
+                  <strong style="font-size:13.5px; margin-left:6px; color:var(--text-main);">${escapeHtml(t.title)}</strong>
+                </div>
+                <div style="text-align:right;">
+                  <span style="font-size:13px; font-weight:700; color:var(--primary);">${percent}%</span>
+                  <span style="font-size:11.5px; color:var(--text-muted);"> (${sendCount}/${effectiveTotalStudents} คน)</span>
                 </div>
               </div>
-            `;
-          });
-        }
+
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+              </div>
+
+              <details style="margin-top: 8px; font-size: 12px; cursor: pointer;">
+                <summary style="color: var(--primary); font-weight: 500; outline: none;">
+                  🔍 คลิกดูรายชื่อ (ส่งแล้ว ${sendCount} คน / ยังไม่ส่ง ${pendingCount} คน)
+                </summary>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                  <div style="margin-bottom: 8px;">
+                    <strong style="color: #ef4444;">❌ ยังไม่ส่ง (${pendingCount} คน):</strong><br>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                      ${pendingCount > 0 ? info.pendingList.map(no => `<span class="student-pill pending">เลขที่ ${no}</span>`).join('') : '<span style="color:#059669; font-size:11.5px;">🎉 ส่งครบทุกคนแล้ว</span>'}
+                    </div>
+                  </div>
+                  <div style="margin-top: 8px;">
+                    <strong style="color: #10b981;">✅ ส่งแล้ว (${sendCount} คน):</strong><br>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                      ${sendCount > 0 ? info.submittedList.map(st => `<span class="student-pill submitted">เลขที่ ${st.no}${st.score ? ` (${st.score} คะแนน)` : ''}</span>`).join('') : '<span style="color:var(--text-muted); font-size:11.5px;">ยังไม่มีใครส่ง</span>'}
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          `;
+        });
 
         body.innerHTML = html;
       } catch (err) {
